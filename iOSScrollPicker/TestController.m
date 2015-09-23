@@ -65,7 +65,7 @@
 - (UITableViewCell *)cellForRowAtIndex:(NSUInteger)index{
 	NSLog(@"%s %d", __func__, (int)index);
 	UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
-	cell.textLabel.text = [NSString stringWithFormat:@"%d", index];
+	cell.textLabel.text = [NSString stringWithFormat:@"%d", (int)index];
 	return cell;
 }
 

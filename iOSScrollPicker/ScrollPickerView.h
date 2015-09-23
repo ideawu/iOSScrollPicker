@@ -14,6 +14,9 @@
 - (NSInteger)numberOfRows;
 - (CGFloat)heightForCellAtIndex:(NSUInteger)index;
 - (UITableViewCell *)cellForRowAtIndex:(NSUInteger)index;
+@optional
+- (void)maySelectIndex:(NSUInteger)index;
+- (void)didSelectIndex:(NSUInteger)index;
 @end
 
 
@@ -24,5 +27,7 @@
 
 @property (nonatomic) BOOL horizontalScrolling;
 @property (nonatomic) NSUInteger pickLineOffset; // rename anchorOffset
+
+@property (nonatomic) BOOL debug;
 
 @end

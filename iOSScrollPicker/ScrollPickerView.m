@@ -10,7 +10,6 @@
 
 @interface ScrollPickerView (){
 	BOOL _inited;
-	BOOL _debug;
 }
 
 @end
@@ -26,8 +25,6 @@
 }
 
 - (void)construct{
-	_debug = YES;
-	
 	_tableView = [[UITableView alloc] initWithFrame:self.bounds];
 	_tableView.backgroundColor = [UIColor clearColor];
 	_tableView.delegate = self;
@@ -68,11 +65,12 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell = [_delegate cellForRowAtIndex:indexPath.row];
-	//cell.selectionStyle = UITableViewCellSelectionStyleNone;
+	if(!_debug){
+		cell.selectionStyle = UITableViewCellSelectionStyleNone;
+	}
 	if (self.horizontalScrolling) {
 		cell.transform = CGAffineTransformMakeRotation(M_PI_2);
 	}
-	
 	if(_debug){
 		cell.layer.borderWidth = 0.5;
 		cell.layer.borderColor = [UIColor redColor].CGColor;
@@ -82,7 +80,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	[_tableView scrollToNearestSelectedRowAtScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-	NSLog(@"select %d", (int)indexPath.row);
+	//NSLog(@"select %d", (int)indexPath.row);
+	if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
+		[self.delegate didSelectIndex:indexPath.row];
+	}
 }
 
 #pragma mark Scroll view methods
@@ -109,7 +110,7 @@
 	CGPoint selectionPoint = CGPointMake(0, offset + _tableView.contentOffset.y);
 	
 	NSArray *visibleCells = [_tableView visibleCells];
-	NSArray<NSIndexPath *> *indexPathArray = _tableView.indexPathsForVisibleRows;
+	NSArray *indexPathArray = _tableView.indexPathsForVisibleRows;
 	NSEnumerator *iter = [indexPathArray objectEnumerator];
 	for(UITableViewCell *cell in visibleCells){
 		//NSLog(@"#%@ %@ %@", cell.textLabel.text, NSStringFromCGPoint(cell.frame.origin), NSStringFromCGPoint(selectionPoint));
@@ -128,6 +129,9 @@
 	NSInteger index = [self maySelectedIndex];
 	if(index >= 0){
 		//NSLog(@"may select %d", (int)index);
+		if([self.delegate respondsToSelector:@selector(maySelectIndex:)]){
+			[self.delegate maySelectIndex:index];
+		}
 		NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
 		[_tableView selectRowAtIndexPath:path animated:NO scrollPosition:UITableViewScrollPositionNone];
 	}
@@ -136,7 +140,10 @@
 - (void)scrollToTheSelectedCell {
 	NSInteger index = [self maySelectedIndex];
 	if(index >= 0){
-		NSLog(@"select %d", (int)index);
+		//NSLog(@"select %d", (int)index);
+		if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
+			[self.delegate didSelectIndex:index];
+		}
 		NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
 		[_tableView selectRowAtIndexPath:path animated:YES scrollPosition:UITableViewScrollPositionMiddle];
 	}
