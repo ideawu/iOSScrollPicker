@@ -23,6 +23,9 @@
 @interface ScrollPickerView : UIView<UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic) UITableView *tableView;
+@property (nonatomic) UIView *headerView;
+@property (nonatomic) UIView *footerView;
+
 @property (nonatomic) id <ScrollPickerViewDelegate> delegate;
 
 @property (nonatomic) BOOL horizontalScrolling;

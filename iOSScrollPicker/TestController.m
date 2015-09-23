@@ -26,16 +26,48 @@
 		ScrollPickerView *view = [[ScrollPickerView alloc] initWithFrame:CGRectMake(10, 10, 100, 300)];
 		view.delegate = self;
 		view.horizontalScrolling = NO;
+		view.debug = YES;
 		view.layer.borderWidth = 1;
 		view.layer.borderColor = [UIColor grayColor].CGColor;
+		
+		{
+			UILabel *label = [[UILabel alloc] initWithFrame:view.bounds];
+			label.text = @"wwwwwwww";
+			label.backgroundColor = [UIColor yellowColor];
+			view.headerView = label;
+		}
+		{
+			UIView *label = [[UIView alloc] initWithFrame:view.bounds];
+			//label.text = @"wwwwwwww";
+			label.backgroundColor = [UIColor blueColor];
+			view.footerView = label;
+		}
+
 		[self.view addSubview:view];
 	}
+	
+	
 	{
 		ScrollPickerView *view = [[ScrollPickerView alloc] initWithFrame:CGRectMake(10, 350, 300, 100)];
 		view.delegate = self;
 		view.horizontalScrolling = YES;
+		view.debug = YES;
 		view.layer.borderWidth = 1;
 		view.layer.borderColor = [UIColor grayColor].CGColor;
+		
+		{
+			UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, view.bounds.size.height, view.bounds.size.width)];
+			label.text = @"wwwwwwww";
+			label.backgroundColor = [UIColor yellowColor];
+			view.headerView = label;
+		}
+		{
+			UIView *label = [[UIView alloc] initWithFrame:CGRectMake(0, 0, view.bounds.size.height, view.bounds.size.width)];
+			//label.text = @"wwwwwwww";
+			label.backgroundColor = [UIColor blueColor];
+			view.footerView = label;
+		}
+
 		[self.view addSubview:view];
 	}
 }
@@ -58,12 +90,12 @@
 
 
 - (NSInteger)numberOfRows{
-	NSLog(@"%s", __func__);
+	//NSLog(@"%s", __func__);
 	return 20;
 }
 
 - (UITableViewCell *)cellForRowAtIndex:(NSUInteger)index{
-	NSLog(@"%s %d", __func__, (int)index);
+	//NSLog(@"%s %d", __func__, (int)index);
 	UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
 	cell.textLabel.text = [NSString stringWithFormat:@"%d", (int)index];
 	return cell;
@@ -72,5 +104,13 @@
 - (CGFloat)heightForCellAtIndex:(NSUInteger)index{
 	return 50;
 }
+
+- (void)maySelectIndex:(NSUInteger)index{
+	//NSLog(@"%s %d", __func__, (int)index);
+}
+- (void)didSelectIndex:(NSUInteger)index{
+	NSLog(@"%s %d", __func__, (int)index);
+}
+
 
 @end
