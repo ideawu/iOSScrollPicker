@@ -77,7 +77,11 @@
 }
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex{
-	[self scrollToAnchorAtIndex:selectedIndex];
+	if(!_inited){
+		_selectedIndex = selectedIndex;
+	}else{
+		[self scrollToAnchorAtIndex:selectedIndex];
+	}
 }
 
 - (CGFloat)anchorOffset{
@@ -186,7 +190,7 @@
 		return;
 	}
 	//NSLog(@"select %d", (int)index);
-	if(!_inited || index != _selectedIndex){
+	if(!_inited || (_inited && index != _selectedIndex)){
 		if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
 			[self.delegate didSelectIndex:index];
 		}
