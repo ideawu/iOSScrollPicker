@@ -113,9 +113,9 @@
 
 	UIView *view = [_delegate viewForRowAtIndex:indexPath.row];
 	if (self.horizontalScrolling) {
-		CGRect frame = view.frame;
+		//CGRect frame = view.frame;
 		view.transform = CGAffineTransformMakeRotation(M_PI_2);
-		view.frame = frame;
+		//view.frame = frame;
 	}
 	[cell.contentView addSubview:view];
 	
