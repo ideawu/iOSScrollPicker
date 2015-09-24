@@ -40,6 +40,7 @@
 	_tableView.delegate = self;
 	_tableView.dataSource = self;
 	_tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+	_tableView.separatorColor = [UIColor clearColor];
 	_tableView.showsVerticalScrollIndicator = NO;
 	_tableView.showsHorizontalScrollIndicator = NO;
 	
@@ -189,13 +190,13 @@
 	if(index >= [self.delegate numberOfRows]){
 		return;
 	}
-	//NSLog(@"select %d", (int)index);
+	
+	BOOL need_callback = false;
 	if(!_inited || (_inited && index != _selectedIndex)){
-		if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
-			[self.delegate didSelectIndex:index];
-		}
+		need_callback = YES;
 	}
 	_selectedIndex = index;
+
 	NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
 	[_tableView selectRowAtIndexPath:path animated:NO scrollPosition:UITableViewScrollPositionNone];
 	
@@ -210,8 +211,16 @@
 	CGPoint contentOffset = _tableView.contentOffset;
 	contentOffset.y = y - offset + [self.delegate heightForCellAtIndex:index]/2;
 	//NSLog(@"%f => %f", _tableView.contentOffset.y, y);
+
 	[UIView animateWithDuration:0.2 animations:^{
 		_tableView.contentOffset = contentOffset;
+	} completion:^(BOOL finished) {
+		//NSLog(@"select %d", (int)index);
+		if(need_callback){
+			if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
+				[self.delegate didSelectIndex:_selectedIndex];
+			}
+		}
 	}];
 }
 
