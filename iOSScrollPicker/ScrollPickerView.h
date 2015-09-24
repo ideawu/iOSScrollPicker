@@ -1,6 +1,7 @@
 //
 //  ScrollPickerView.h
 //  iOSScrollPicker
+//  https://github.com/ideawu/iOSScrollPicker
 //
 //  Created by ideawu on 9/23/15.
 //  Copyright © 2015 ideawu. All rights reserved.
@@ -13,7 +14,7 @@
 @protocol ScrollPickerViewDelegate <NSObject>
 - (NSInteger)numberOfRows;
 - (CGFloat)heightForCellAtIndex:(NSUInteger)index;
-- (UITableViewCell *)cellForRowAtIndex:(NSUInteger)index;
+- (UIView *)viewForRowAtIndex:(NSUInteger)index;
 @optional
 - (void)maySelectIndex:(NSUInteger)index;
 - (void)didSelectIndex:(NSUInteger)index;
@@ -22,14 +23,15 @@
 
 @interface ScrollPickerView : UIView<UITableViewDataSource, UITableViewDelegate>
 
-@property (nonatomic) UITableView *tableView;
+@property (nonatomic) id <ScrollPickerViewDelegate> delegate;
+
 @property (nonatomic) UIView *headerView;
 @property (nonatomic) UIView *footerView;
 
-@property (nonatomic) id <ScrollPickerViewDelegate> delegate;
-
 @property (nonatomic) BOOL horizontalScrolling;
-@property (nonatomic) NSUInteger pickLineOffset; // rename anchorOffset
+// default: the middle of the view
+@property (nonatomic) CGFloat anchorOffset;
+@property (nonatomic) NSUInteger selectedIndex;
 
 @property (nonatomic) BOOL debug;
 

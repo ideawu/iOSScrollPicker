@@ -1,6 +1,7 @@
 //
 //  ScrollPickerView.m
 //  iOSScrollPicker
+//  https://github.com/ideawu/iOSScrollPicker
 //
 //  Created by ideawu on 9/23/15.
 //  Copyright © 2015 ideawu. All rights reserved.
@@ -11,7 +12,7 @@
 @interface ScrollPickerView (){
 	BOOL _inited;
 }
-
+@property (nonatomic) UITableView *tableView;
 @end
 
 @implementation ScrollPickerView
@@ -24,11 +25,11 @@
 }
 
 - (void)layoutSubviews {
-	if(!_inited){
-		_inited = YES;
-		[self construct];
-	}
 	[super layoutSubviews];
+	if(!_inited){
+		[self construct];
+		_inited = YES;
+	}
 }
 
 - (void)construct{
@@ -46,7 +47,6 @@
 		_tableView.transform = CGAffineTransformMakeRotation(-M_PI_2);
 		_tableView.frame = self.bounds;
 	}
-
 	if(_headerView){
 		_tableView.tableHeaderView = _headerView;
 	}
@@ -54,25 +54,38 @@
 		_tableView.tableFooterView = _footerView;
 	}
 	
-	NSUInteger offset = _pickLineOffset;
-	if(offset == 0){
-		if(_horizontalScrolling){
-			offset = self.frame.size.width / 2;
-		}else{
-			offset = self.frame.size.height / 2;
-		}
-	}
+	
+	CGFloat offset = self.anchorOffset;
 	CGFloat top = offset - [self.delegate heightForCellAtIndex:0] / 2;
 	if(_tableView.tableHeaderView){
 		top -= _tableView.tableHeaderView.frame.size.height;
 	}
-	CGFloat bottom = offset - [self.delegate heightForCellAtIndex:([self.delegate numberOfRows] - 1)] / 2;
+	CGFloat bottom = 0;
+	if(_horizontalScrolling){
+		bottom = self.frame.size.width - offset - [self.delegate heightForCellAtIndex:([self.delegate numberOfRows] - 1)] / 2;
+	}else{
+		bottom = self.frame.size.height - offset - [self.delegate heightForCellAtIndex:([self.delegate numberOfRows] - 1)] / 2;
+	}
 	if(_tableView.tableFooterView){
 		bottom -= _tableView.tableFooterView.frame.size.height;
 	}
-	_tableView.contentInset = UIEdgeInsetsMake(top, 0, bottom, 0);
 
+	_tableView.contentInset = UIEdgeInsetsMake(top, 0, bottom, 0);
+	
 	[self addSubview:_tableView];
+	[self scrollToAnchorAtIndex:_selectedIndex];
+}
+
+- (void)setSelectedIndex:(NSUInteger)selectedIndex{
+	[self scrollToAnchorAtIndex:selectedIndex];
+}
+
+- (CGFloat)anchorOffset{
+	CGFloat offset = _anchorOffset;
+	if(offset == 0){
+		offset = self.tableView.frame.size.width / 2;
+	}
+	return offset;
 }
 
 #pragma mark Table view methods
@@ -86,13 +99,26 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	UITableViewCell *cell = [_delegate cellForRowAtIndex:indexPath.row];
+	static NSString *tag = @"Cell";
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:tag];
+	if (cell == nil) {
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:tag];
+	}
 	if(!_debug){
 		cell.selectionStyle = UITableViewCellSelectionStyleNone;
 	}
-	if (self.horizontalScrolling) {
-		cell.transform = CGAffineTransformMakeRotation(M_PI_2);
+	if(cell.contentView.subviews.count > 0){
+		[cell.contentView.subviews[0] removeFromSuperview];
 	}
+
+	UIView *view = [_delegate viewForRowAtIndex:indexPath.row];
+	if (self.horizontalScrolling) {
+		CGRect frame = view.frame;
+		view.transform = CGAffineTransformMakeRotation(M_PI_2);
+		view.frame = frame;
+	}
+	[cell.contentView addSubview:view];
+	
 	if(_debug){
 		cell.layer.borderWidth = 0.5;
 		cell.layer.borderColor = [UIColor redColor].CGColor;
@@ -101,12 +127,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	//[_tableView scrollToNearestSelectedRowAtScrollPosition:UITableViewScrollPositionMiddle animated:YES];
 	[self scrollToAnchorAtIndex:indexPath.row];
-	//NSLog(@"select %d", (int)indexPath.row);
-	if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
-		[self.delegate didSelectIndex:indexPath.row];
-	}
 }
 
 #pragma mark Scroll view methods
@@ -144,14 +165,7 @@
 }
 
 - (NSInteger)maySelectedIndex{
-	NSUInteger offset = _pickLineOffset;
-	if(offset == 0){
-		if(_horizontalScrolling){
-			offset = self.frame.size.width / 2;
-		}else{
-			offset = self.frame.size.height / 2;
-		}
-	}
+	CGFloat offset = self.anchorOffset;
 	CGPoint selectionPoint = CGPointMake(0, offset + _tableView.contentOffset.y);
 	
 	NSArray *visibleCells = [_tableView visibleCells];
@@ -168,12 +182,18 @@
 }
 
 - (void)scrollToAnchorAtIndex:(NSUInteger)index{
-	//NSLog(@"select %d", (int)index);
-	if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
-		[self.delegate didSelectIndex:index];
+	if(index >= [self.delegate numberOfRows]){
+		return;
 	}
-	//NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
-	//[_tableView selectRowAtIndexPath:path animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+	//NSLog(@"select %d", (int)index);
+	if(!_inited || index != _selectedIndex){
+		if([self.delegate respondsToSelector:@selector(didSelectIndex:)]){
+			[self.delegate didSelectIndex:index];
+		}
+	}
+	_selectedIndex = index;
+	NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
+	[_tableView selectRowAtIndexPath:path animated:NO scrollPosition:UITableViewScrollPositionNone];
 	
 	CGFloat y = 0;
 	for(NSUInteger i=0; i<index; i++){
@@ -182,14 +202,7 @@
 	if(_tableView.tableHeaderView){
 		y += _tableView.tableHeaderView.frame.size.height;
 	}
-	NSUInteger offset = _pickLineOffset;
-	if(offset == 0){
-		if(_horizontalScrolling){
-			offset = self.frame.size.width / 2;
-		}else{
-			offset = self.frame.size.height / 2;
-		}
-	}
+	CGFloat offset = self.anchorOffset;
 	CGPoint contentOffset = _tableView.contentOffset;
 	contentOffset.y = y - offset + [self.delegate heightForCellAtIndex:index]/2;
 	//NSLog(@"%f => %f", _tableView.contentOffset.y, y);
